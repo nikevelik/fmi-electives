@@ -1,13 +1,22 @@
-document.addEventListener("DOMContentLoaded", async function(){
-    const specialties = (['i', 'ad', 'is', 'kn', 'm', 'pm', 'mi', 'stat', 'si']);
-    const columns = ["department", "horarium", "credits"];    
-    const tableHTML = await loadTableHTML('/sources/Zimen2024-2025.html');
-    console.log(getGroups(tableHTML))
-    const data = tableHTMLtoObject(tableHTML);
-    const cleaned = removeKeys(data, columns);
-    const filtered = filterspecialties(cleaned, specialties);
-    createTable(filtered);
-});
+
+const main = async function(){   
+  document.getElementById("table-container").innerHTML="";
+  const specialties = Array.from(document.querySelectorAll('input[name="specialty"]:checked')).map(checkbox => checkbox.value);
+  const columns = Array.from(document.querySelectorAll('input[name="column"]:checked')).map(checkbox => checkbox.value);    
+  const groups = Array.from(document.querySelectorAll('input[name="group"]:checked')).map(checkbox => checkbox.value);
+  const tableHTML = await loadTableHTML('/sources/Zimen2024-2025.html');
+  console.log(getGroups(tableHTML))
+  const data = tableHTMLtoObject(tableHTML);
+  const cleaned = removeKeys(data, columns);
+  const filtered = filterspecialties(cleaned, specialties);
+  const groupsHidden = hideGroups(filtered, groups);
+  createTable(groupsHidden);
+}
+
+const hideGroups = (arr, groups) => {
+  console.log(groups);
+  return arr.filter(el => groups.includes(el.group));
+}
 
 const getGroups = tableHTML => {
   const parser = new DOMParser();
@@ -24,10 +33,11 @@ const loadTableHTML = async HTMLTableFilePath => {
 
 const mapRow = row => {
     const cells = row.querySelectorAll('td');
+    const name =  cells[1].querySelector('a') ? cells[1].querySelector('a').textContent.trim() : cells[1].textContent.trim()
     return {
         department: cells[0].textContent.trim(),
-        name: cells[1].querySelector('a') ? cells[1].querySelector('a').textContent.trim() : cells[1].textContent.trim(),
-        link: cells[1].querySelector('a') ? cells[1].querySelector('a').href : '',
+        name,
+        link: `<a href="${cells[1].querySelector('a') ? cells[1].querySelector('a').href : ''}">${name}</a>`,
         horarium: cells[2].textContent.trim(),
         credits: cells[3].textContent.trim(),
         group: cells[4].textContent.trim(),
@@ -107,14 +117,7 @@ function createTable(data) {
             const row = table.insertRow();
             keys.forEach(key => {
                 const cell = row.insertCell();
-                if (key === 'link') {
-                    const link = document.createElement('a');
-                    link.href = item[key];
-                    link.textContent = item['name'];
-                    cell.appendChild(link);
-                } else {
-                    cell.textContent = item[key];
-                }
+                cell.innerHTML = item[key];
             });
         });
 
@@ -126,19 +129,17 @@ function createTable(data) {
 }
 
 
+
 document.addEventListener("DOMContentLoaded", function() {
-    // Add event listeners to all accordion headers
+    main();   
     document.querySelectorAll('.accordion-header').forEach(header => {
         header.addEventListener('click', function(event) {
-            event.preventDefault(); // Prevent the default button action
+            event.preventDefault(); 
 
-            // Toggle the active class on the clicked header
             this.classList.toggle('active');
 
-            // Get the content div that follows the header
             const content = this.nextElementSibling;
 
-            // Toggle the display of the content
             if (content.style.display === "block") {
                 content.style.display = "none";
             } else {
@@ -146,5 +147,11 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     });
-});
 
+    const applyButton = document.getElementById('apply-button');
+    applyButton.addEventListener('click', function(event) {
+        event.preventDefault(); 
+        main();    
+
+    });
+});
