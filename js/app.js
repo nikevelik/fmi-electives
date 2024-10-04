@@ -1,62 +1,55 @@
-// document.getElementById('dataForm').addEventListener('submit', function (event) {
-//     event.preventDefault();
+document.addEventListener("DOMContentLoaded", async function(){
+    const specialties = (['i', 'ad', 'is', 'kn', 'm', 'pm', 'mi', 'stat', 'si']);
+    const columns = ["department", "horarium", "credits"];    
+    const tableHTML = await loadTableHTML('/sources/Zimen2024-2025.html');
+    console.log(getGroups(tableHTML))
+    const data = tableHTMLtoObject(tableHTML);
+    const cleaned = removeKeys(data, columns);
+    const filtered = filterspecialties(cleaned, specialties);
+    createTable(filtered);
+});
 
-//     const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-//     const selectedValues = Array.from(checkboxes).map(checkbox => checkbox.value);
+const getGroups = tableHTML => {
+  const parser = new DOMParser();
+  return [... new Set(Array.from(parser.parseFromString(tableHTML, 'text/html').querySelector('.table').querySelectorAll('tbody tr')).slice(1).map((row => {
+    const cells = row.querySelectorAll('td');
+    return cells[4].textContent.trim(); // Extract the group property
+})))];
+}
 
-//     const specialties = selectedValues.filter(value => ['i', 'ad', 'is', 'kn', 'm', 'pm', 'mi', 'stat'].includes(value));
-//     const columns = selectedValues.filter(value => ['kathedra', 'horarium', 'krediti', 'Disciplina', 'DisciplinaLink', 'Prepodavatel'].includes(value));
-
-//     console.log('Selected Specialties:', specialties);
-//     console.log('Selected Columns:', columns);
-//     document.getElementById("table-container").innerHTML = "";
-//     main(specialties, columns);
-
-// });
-
-
-async function loadTableHTML(HTMLTableFilePath) {
+const loadTableHTML = async HTMLTableFilePath => {
     const response = await fetch(HTMLTableFilePath);
     return await response.text();
 }
 
-function tableHTMLtoJSON(tableHTML) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(tableHTML, 'text/html');
-    const table = doc.querySelector('.table');
-    const rows = table.querySelectorAll('tbody tr');
-    const data = [];
+const mapRow = row => {
+    const cells = row.querySelectorAll('td');
+    return {
+        department: cells[0].textContent.trim(),
+        name: cells[1].querySelector('a') ? cells[1].querySelector('a').textContent.trim() : cells[1].textContent.trim(),
+        link: cells[1].querySelector('a') ? cells[1].querySelector('a').href : '',
+        horarium: cells[2].textContent.trim(),
+        credits: cells[3].textContent.trim(),
+        group: cells[4].textContent.trim(),
+        ad: cells[5].textContent.trim(),
+        i: cells[6].textContent.trim(),
+        is: cells[7].textContent.trim(),
+        kn: cells[8].textContent.trim(),
+        m: cells[9].textContent.trim(),
+        mi: cells[10].textContent.trim(),
+        pm: cells[11].textContent.trim(),
+        si: cells[12].textContent.trim(),
+        stat: cells[13].textContent.trim(),
+        teacher: cells[14].textContent.trim()
+    };
+};
 
-    rows.forEach((row, rowIndex) => {
-        if (rowIndex === 0) return;
-
-        const cells = row.querySelectorAll('td');
-        const rowData = {
-            kathedra: cells[0].textContent.trim(),
-            disciplina: cells[1].querySelector('a') ? cells[1].querySelector('a').textContent.trim() : cells[1].textContent.trim(),
-            disciplinaLink: cells[1].querySelector('a') ? cells[1].querySelector('a').href : '',
-            horarium: cells[2].textContent.trim(),
-            krediti: cells[3].textContent.trim(),
-            grupaID: cells[4].textContent.trim(),
-            ad: cells[5].textContent.trim(),
-            i: cells[6].textContent.trim(),
-            is: cells[7].textContent.trim(),
-            kn: cells[8].textContent.trim(),
-            m: cells[9].textContent.trim(),
-            mi: cells[10].textContent.trim(),
-            pm: cells[11].textContent.trim(),
-            si: cells[12].textContent.trim(),
-            stat: cells[13].textContent.trim(),
-            prepodavatel: cells[14].textContent.trim()
-        };
-
-        data.push(rowData);
-    });
-
-    return data;
+const tableHTMLtoObject = tableHTML => {
+  const parser = new DOMParser();
+  return Array.from(parser.parseFromString(tableHTML, 'text/html').querySelector('.table').querySelectorAll('tbody tr')).slice(1).map(mapRow);
 }
 
-function filterSpecialnost(d, keys) {
+function filterspecialties(d, keys) {
     const keysToExclude = new Set(['i', 'ad', 'is', 'kn', 'm', 'pm', 'mi', 'stat', 'si']);
 
     return d
@@ -80,11 +73,11 @@ function filterSpecialnost(d, keys) {
 
 function groupByGrupaID(arr) {
     return arr.reduce((acc, obj) => {
-        const { grupaID, ...rest } = obj;
-        if (!acc[grupaID]) {
-            acc[grupaID] = [];
+        const { group, ...rest } = obj;
+        if (!acc[group]) {
+            acc[group] = [];
         }
-        acc[grupaID].push(rest);
+        acc[group].push(rest);
         return acc;
     }, {});
 }
@@ -96,16 +89,8 @@ function removeKeys(arr, keysToRemove) {
 
 function createTable(data) {
     data = groupByGrupaID(data);
-    removed = ["М", "ПМ", "ПМСтат", "С", "ПМ/ Стат", "ПМ / Ст", "ПМ/Стат", "М", "M", "КП"];
-    included = ["ЯКН", "ОКН"]
     const okd = Object.keys(data);
     for (let i = 0; i < okd.length; i++) {
-        // if (removed.includes(okd[i])) {
-        //     continue;
-        // }
-//                if (!included.includes(okd[i])) {
-//                   continue;
-//             }
         const table = document.createElement('table');
         table.border = '1';
 
@@ -122,35 +107,44 @@ function createTable(data) {
             const row = table.insertRow();
             keys.forEach(key => {
                 const cell = row.insertCell();
-                if (key === 'disciplinaLink') {
+                if (key === 'link') {
                     const link = document.createElement('a');
                     link.href = item[key];
-                    link.textContent = item['disciplina'];
+                    link.textContent = item['name'];
                     cell.appendChild(link);
                 } else {
                     cell.textContent = item[key];
                 }
             });
-          const checkbox = row.insertCell();
-          checkbox.innerHTML = `<input type="checkbox">`;
-
         });
 
         const h1 = document.createElement('h1');
         h1.textContent = okd[i];
-        console.log(`--${okd[i]}--`);
         document.getElementById('table-container').append(h1);
         document.getElementById('table-container').appendChild(table);
     }
 }
 
 
-async function main(specialties, columns) {
-    const tableHTML = await loadTableHTML('/sources/Zimen2024-2025.html');
-    const data = tableHTMLtoJSON(tableHTML);
-    const cleaned = removeKeys(data, columns);
-    const filtered = filterSpecialnost(cleaned, specialties);
-    createTable(filtered);
-}
+document.addEventListener("DOMContentLoaded", function() {
+    // Add event listeners to all accordion headers
+    document.querySelectorAll('.accordion-header').forEach(header => {
+        header.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent the default button action
 
-main(["si"], ["kathedra", "horarium", "krediti"]);    
+            // Toggle the active class on the clicked header
+            this.classList.toggle('active');
+
+            // Get the content div that follows the header
+            const content = this.nextElementSibling;
+
+            // Toggle the display of the content
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+        });
+    });
+});
+

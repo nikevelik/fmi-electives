@@ -1,4 +1,5 @@
 
+/* Existing styles */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
@@ -15,6 +16,62 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
+h2 {
+    color: #e0e0e0;
+    margin: 10px 0;
+}
+
+/* Accordion styles */
+.accordion {
+    background: #1e1e1e;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.accordion-header {
+    background-color: #333;
+    color: #ffffff;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 16px;
+    border-radius: 8px;
+}
+
+.accordion-content {
+    display: none;
+    padding: 10px;
+}
+
+/* Checkbox and label styles */
+label {
+    display: block;
+    margin: 5px 0;
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    accent-color: #bb86fc; /* Custom color for checkbox */
+    margin-right: 8px;
+    width: 18px; /* Custom width */
+    height: 18px; /* Custom height */
+}
+
+/* Optional: Style checkboxes on hover */
+input[type="checkbox"]:hover {
+    transform: scale(1.1); /* Slightly enlarge checkbox on hover */
+}
+
+/* Style the checkbox when checked */
+input[type="checkbox"]:checked {
+    accent-color: #bb86fc; /* Color when checked */
+}
+
+/* Table styles */
 table {
     width: 100%;
     border-collapse: collapse;
