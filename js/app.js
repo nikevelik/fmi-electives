@@ -146,7 +146,7 @@ function createTable(data) {
 
 
 async function main(specialties, columns) {
-    const tableHTML = await loadTableHTML('Zimen2024-2025.html');
+    const tableHTML = await loadTableHTML('/sources/Zimen2024-2025.html');
     const data = tableHTMLtoJSON(tableHTML);
     const cleaned = removeKeys(data, columns);
     const filtered = filterSpecialnost(cleaned, specialties);
